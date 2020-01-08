@@ -50,7 +50,7 @@ def train(net, loader, epochs, criterion, optimizer):
     correct = 0
     loss = 0.0
 
-    for epoch in range(5):
+    for epoch in range(epochs):
         for idx, data in enumerate(loader):
 
             X, y = data
