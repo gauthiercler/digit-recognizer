@@ -4,6 +4,8 @@ import torch.nn.functional as F
 import torchvision
 import torchvision.transforms as transforms
 import torch.optim as optim
+import pandas as pd
+
 
 class ConvNet(nn.Module):
     def __init__(self):
@@ -50,7 +52,7 @@ def train(net, loader, epochs, criterion, optimizer):
     correct = 0
     loss = 0.0
 
-    for epoch in range(5):
+    for epoch in range(epochs):
         for idx, data in enumerate(loader):
 
             X, y = data
@@ -92,7 +94,20 @@ def main():
     criterion = nn.CrossEntropyLoss()
     optimizer = optim.SGD(net.parameters(), lr=0.001)
 
-    train(net, loader, 5, criterion, optimizer)
+    train(net, loader, 40, criterion, optimizer)
+
+    testset = pd.read_csv('test.csv')
+    X = testset.values.astype('float32')
+    X = torch.tensor(X)
+    X = X.view(X.shape[0], 1, 28, 28)
+    print(X.shape)
+    outputs = net(X)
+
+    _, predicted = torch.max(outputs.data, 1)
+    pd.DataFrame({
+        "ImageId": [x for x in range(1, len(predicted) + 1)],
+        "Label": predicted
+    }).to_csv('results.csv', index=False)
 
 if __name__ == '__main__':
     main()
