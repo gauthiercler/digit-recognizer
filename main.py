@@ -47,6 +47,16 @@ class ConvNet(nn.Module):
         x = self.fc3(x)
         return x
 
+
+PRINT_STEP = 1000
+BATCH_SIZE = 6
+
+
+class ToCuda:
+    def __call__(self, tensor):
+        return tensor.cuda()
+
+
 def train(net, loader, epochs, criterion, optimizer):
 
     correct = 0
@@ -70,26 +80,31 @@ def train(net, loader, epochs, criterion, optimizer):
             correct += (predicted == y).sum().item()
             loss += loss.item()
 
-            if idx % 1000 == 999:
-                print(epoch + 1, idx + 1, loss / 100, correct / 6000 * 100)
+            if idx % PRINT_STEP == PRINT_STEP - 1:
+                print(f'epoch [{epoch + 1} {idx + 1}], loss {loss / 100:.4f}, accuracy {correct / (BATCH_SIZE * PRINT_STEP) * 100:.3f}')
                 correct = 0
                 loss = 0.0
 
-def main():
-    net = ConvNet()
 
-    transform = transforms.Compose(
-    [
-        transforms.ToTensor()
-    ])
+def main():
+
+    transformers = [transforms.ToTensor()]
+
+    if torch.cuda.is_available():
+        torch.cuda.set_device("cuda:0")
+        torch.set_default_tensor_type('torch.cuda.FloatTensor')
+        transformers.append(ToCuda())
+
+    transform = transforms.Compose(transformers)
 
     trainset = torchvision.datasets.MNIST('.', download=True,
-                                       train=True,
-                                       transform=transform)
+                                          train=True,
+                                          transform=transform)
 
     loader = torch.utils.data.DataLoader(trainset,
-                                         batch_size=6)
+                                         batch_size=BATCH_SIZE)
 
+    net = ConvNet()
 
     criterion = nn.CrossEntropyLoss()
     optimizer = optim.SGD(net.parameters(), lr=0.001)
