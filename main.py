@@ -49,7 +49,6 @@ class ConvNet(nn.Module):
 
 
 PRINT_STEP = 1000
-BATCH_SIZE = 6
 
 
 class ToCuda:
@@ -81,7 +80,7 @@ def train(net, loader, epochs, criterion, optimizer):
             loss += loss.item()
 
             if idx % PRINT_STEP == PRINT_STEP - 1:
-                print(f'epoch [{epoch + 1} {idx + 1}], loss {loss / 100:.4f}, accuracy {correct / (BATCH_SIZE * PRINT_STEP) * 100:.3f}')
+                print(f'epoch [{epoch + 1} {idx + 1}], loss {loss / 100:.4f}, accuracy {correct / (loader.batch_size * PRINT_STEP) * 100:.3f}')
                 correct = 0
                 loss = 0.0
 
@@ -102,7 +101,7 @@ def main():
                                           transform=transform)
 
     loader = torch.utils.data.DataLoader(trainset,
-                                         batch_size=BATCH_SIZE)
+                                         batch_size=6)
 
     net = ConvNet()
 
